@@ -2,8 +2,6 @@ package contracts.beer.rest
 
 import org.springframework.cloud.contract.spec.Contract
 
-import static com.example.PatternUtils.tooYoung
-
 Contract.make {
 	request {
 		description("""
@@ -24,16 +22,12 @@ we'll NOT grant him the beer
 		headers {
 			contentType(applicationJson())
 		}
-		stubMatchers {
-			jsonPath('$.age', byRegex(tooYoung()))
-		}
 	}
 	response {
 		status 200
 		body( """
 	{
-		"status": "NOT_OK",
-		"foo": "foo"
+		"status": "NOT_OK"
 	}
 	""")
 		headers {
