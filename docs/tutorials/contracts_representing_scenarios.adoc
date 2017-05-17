@@ -1,0 +1,82 @@
+:toc: left
+:toclevels: 8
+:nofooter:
+:root: ../..
+:consumer: {root}/consumer
+:producer: {root}/producer
+:images_folder: ../images
+:where_are_contracts: the producer's code
+:producer_artifact: beer-api-producer
+
+= Contracts representing scenarios (stateful stubs)
+
+In this tutorial we'll keep the contracts together with the producer code.
+In the contracts we'll describe a stateful scenario where the stub needs
+to have "memory" to know what the previous state was and what the next one
+should be
+
+== Scenarios
+
+image::{images_folder}/scenario.png[title="Stateful scenario. The more you drink the more wasted you get"]
+
+== Flow
+
+image::{images_folder}/flow.png[title="Consumer Driven Contract flow"]
+
+== Tutorial
+
+Consumer Driven Contract is like TDD on the layer of architecture. Let's start with writing a test on the
+consumer side.
+
+=== Consumer flow 1
+
+image::{images_folder}/consumer_flow_1.png[title="Interact with cloned producer code"]
+
+==== IDE setup
+
+- Open in your IDE the `consumer` project (either via Maven or Gradle)
+- In the standard CDC process we would be doing TDD but here you already
+have some code ready
+  * The test `IntoxicationControllerTest` contains a test of our feature
+  * In the `IntoxicationController` we'll need to call an endpoint on the producer
+  side
+- Since we don't know how the API should look like, we'll clone the producer's
+code to play around with their API
+
+include::snippets/setup_cloned_producer.adoc[]
+
+=== Producer flow 1
+
+image::{images_folder}/producer_flow_1.png[title="Producer takes over the PR, writes missing impl and merges the PR"]
+
+include::snippets/producer_flow.adoc[]
+
+==== Updating contracts from the PR
+
+include::snippets/updating_messaging_contracts_from_pr.adoc[]
+
+include::snippets/producer_implementation.adoc[]
+- Now you would merge the PR to master and your CI system would build a fat jar and stubs
+- Congratulations - you've completed the producer side of this tutorial
+
+include::snippets/consumer_flow_2.adoc[]
+
+=== Generating documentation from contracts
+
+Now, we can easily create the documentation of the whole API of the producer.
+You can create the following test that will generate a `contracts.adoc` file
+under `target/generated-snippets/` with description of contracts and
+with the contract bodies as such.
+
+[source,java]
+----
+include::{root}/beer_contracts/src/test/java/docs/GenerateAdocsFromContractsTests.java[]
+----
+
+== Solutions
+
+include::snippets/solutions.adoc[]
+
+== Back to the main page
+
+link:../workshops.html[Click here to go back to the main page]
