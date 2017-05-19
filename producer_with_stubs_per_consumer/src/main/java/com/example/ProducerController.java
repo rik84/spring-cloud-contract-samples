@@ -46,13 +46,13 @@ class PersonToCheck {
 
 class Response {
 	public BeerCheckStatus status;
-	public String foo;
-	public String bar;
+	public String name;
+	public String surname;
 	
-	Response(BeerCheckStatus status, String foo, String bar) {
+	Response(BeerCheckStatus status, String name, String surname) {
 		this.status = status;
-		this.foo = foo;
-		this.bar = bar;
+		this.name = name;
+		this.surname = surname;
 	}
 }
 

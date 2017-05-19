@@ -33,7 +33,7 @@ we'll NOT grant him the beer
 		body( """
 	{
 		"status": "NOT_OK",
-		"bar": "bar"
+		"surname": "bar"
 	}
 	""")
 		headers {
