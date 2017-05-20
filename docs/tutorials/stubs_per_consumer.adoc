@@ -513,14 +513,62 @@ the producer side.
 
 image::{images_folder}/producer_flow_1.png[title="Producer takes over the PR, writes missing impl and merges the PR"]
 
-include::snippets/producer_flow.adoc[]
+include::snippets/producer_ide_setup.adoc[]
 
-==== Updating contracts from the PR
+include::snippets/setting_plugin_on_producer.adoc[]
+    * in our situation we'll use the mapping approach. Let's set the following base classes for our contracts
++
+[source,xml,indent=0,subs="verbatim,attributes",role="primary"]
+.Maven
+----
+<plugin>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-contract-maven-plugin</artifactId>
+    <version>${spring-cloud-contract.version}</version>
+    <extensions>true</extensions>
+    <configuration>
+        <baseClassMappings>
+            <baseClassMapping>
+                <contractPackageRegex>.*rest.*</contractPackageRegex>
+                <baseClassFQN>com.example.BeerRestBase</baseClassFQN>
+            </baseClassMapping>
+        </baseClassMappings>
+    </configuration>
+</plugin>
+----
++
+[source,groovy,indent=0,subs="verbatim,attributes",role="secondary"]
+.Gradle
+----
+contracts {
+	baseClassMappings {
+		baseClassMapping(".*rest.*", "com.example.BeerRestBase")
+	}
+}
+----
 
-include::snippets/updating_messaging_contracts_from_pr.adoc[]
+include::generating_tests_from_contract.adoc[]
 
-include::snippets/producer_implementation.adoc[]
+==== Fixing broken HTTP tests
+
+- Let's start with HTTP
+  * First let's write the missing implementation in `ProducerController`. The logic to be written
+    is extremely simple - if the `personCheckingService.shouldGetBeer(...)` returns `true` then we
+    should return `new Response(BeerCheckStatus.OK, personToCheck.name)`.
+    Otherwise `new Response(BeerCheckStatus.NOT_OK, personToCheck.name)`.
+    (<<_producerController_for_stubs_per_consumer_implementation,Show solution>>)
+include::fixing_base_class.adoc[]
+
 - Now you would merge the PR to master and your CI system would build a fat jar and stubs
+
+IMPORTANT: The stubs per consumer is a very powerful feature. On the producer side, if you want to
+remove a field from the response you can actually very quickly verify if it's used. Try removing
+the `surname` field from the `Response` class and you'll see that the generated `RestTest` in the
+`bar-consumer` subfolder is failing. That means that the `bar-consumer` requires that field and
+you can't remove it safely. On the other hand in production both consumers will receive
+more fields than they define in the contract thus if they don't configure their serializers
+properly (to ignore unknown fields) then their tests will pass but they're integration will fail!
+
 - Congratulations - you've completed the producer side of this tutorial
 
 include::snippets/consumer_flow_2.adoc[]
@@ -708,6 +756,16 @@ then:
 [source,java]
 ----
 include::../../consumer_with_stubs_per_consumer/src/main/java/com/example/BeerController.java[tags=impl]
+----
+
+=== ProducerController for stubs per consumer implementation
+
+[source,java]
+----
+if (personCheckingService.shouldGetBeer(personToCheck)) {
+    return new Response(BeerCheckStatus.OK, personToCheck.name);
+}
+return new Response(BeerCheckStatus.NOT_OK, personToCheck.name);
 ----
 
 == Back to the main page

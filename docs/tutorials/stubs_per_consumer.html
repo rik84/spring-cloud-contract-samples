@@ -518,11 +518,7 @@ $(addBlockSwitches);
 <ul class="sectlevel3">
 <li><a href="#_ide_setup_2">IDE setup</a></li>
 <li><a href="#_setting_up_the_spring_cloud_contract_plugin">Setting up the Spring Cloud Contract plugin</a></li>
-<li><a href="#_updating_contracts_from_the_pr">Updating contracts from the PR</a></li>
-<li><a href="#_generating_tests_from_contracts">Generating tests from contracts</a></li>
 <li><a href="#_fixing_broken_http_tests">Fixing broken HTTP tests</a></li>
-<li><a href="#_fixing_broken_messaging_tests">Fixing broken messaging tests</a></li>
-<li><a href="#_writing_the_missing_producer_messaging_implementation">Writing the missing producer messaging implementation</a></li>
 </ul>
 </li>
 <li><a href="#_consumer_flow_2">Consumer flow 2</a></li>
@@ -547,6 +543,7 @@ $(addBlockSwitches);
 <li><a href="#_foo_consumer_contracts">Foo-consumer contracts</a></li>
 <li><a href="#_bar_consumer_contracts">Bar-consumer contracts</a></li>
 <li><a href="#_stubs_per_consumer_beercontroller">Stubs per consumer BeerController</a></li>
+<li><a href="#_producercontroller_for_stubs_per_consumer_implementation">ProducerController for stubs per consumer implementation</a></li>
 </ul>
 </li>
 <li><a href="#_back_to_the_main_page">Back to the main page</a></li>
@@ -1549,12 +1546,7 @@ have a base class with fully qualified name equal to X)</p>
 </div>
 </li>
 <li>
-<p>In the following example we&#8217;ll play with convention based naming</p>
-<div class="ulist">
-<ul>
-<li>
-<p>For Maven under the plugin setup you have to set up the plugin configuration
-<code>&lt;configuration&gt;&lt;packageWithBaseClasses&gt;com.example&lt;/packageWithBaseClasses&gt;&lt;/configuration&gt;</code></p>
+<p>in our situation we&#8217;ll use the mapping approach. Let&#8217;s set the following base classes for our contracts</p>
 <div class="listingblock primary">
 <div class="title">Maven</div>
 <div class="content">
@@ -1564,7 +1556,12 @@ have a base class with fully qualified name equal to X)</p>
     &lt;version&gt;${spring-cloud-contract.version}&lt;/version&gt;
     &lt;extensions&gt;true&lt;/extensions&gt;
     &lt;configuration&gt;
-        &lt;packageWithBaseClasses&gt;com.example&lt;/packageWithBaseClasses&gt;
+        &lt;baseClassMappings&gt;
+            &lt;baseClassMapping&gt;
+                &lt;contractPackageRegex&gt;.*rest.*&lt;/contractPackageRegex&gt;
+                &lt;baseClassFQN&gt;com.example.BeerRestBase&lt;/baseClassFQN&gt;
+            &lt;/baseClassMapping&gt;
+        &lt;/baseClassMappings&gt;
     &lt;/configuration&gt;
 &lt;/plugin&gt;</code></pre>
 </div>
@@ -1573,136 +1570,20 @@ have a base class with fully qualified name equal to X)</p>
 <div class="title">Gradle</div>
 <div class="content">
 <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">contracts {
-    packageWithBaseClasses = 'com.example'
+	baseClassMappings {
+		baseClassMapping(".*rest.*", "com.example.BeerRestBase")
+	}
 }</code></pre>
 </div>
 </div>
 </li>
-<li>
-<p>In both cases passing of that value tells the plugin that a given base class is available under
-the <code>com.example</code> package</p>
-</li>
 </ul>
 </div>
 </li>
 </ul>
 </div>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_updating_contracts_from_the_pr">Updating contracts from the PR</h4>
-<div class="ulist">
-<ul>
-<li>
-<p>We need to modify the messaging contracts cause they are missing one important piece from the
-producer&#8217;s perspective - the <code>input</code> part</p>
-<div class="ulist">
-<ul>
-<li>
-<p>In case of messaging there has to be some trigger that will result in producing an output message</p>
-</li>
-<li>
-<p>Spring Cloud Contract accepts 3 situations</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Input message produces an output message</p>
-</li>
-<li>
-<p>A method execution produces an output message</p>
-</li>
-<li>
-<p>Input message doesn&#8217;t produce any output message</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>In our situation we&#8217;ll have a method produce an output. It&#8217;s enough to pass the <code>input {}</code> method
-and then the <code>triggeredBy</code> method. The <code>triggeredBy</code> method requires a String with a method execution.
-So if in the base class we expect to have a method called <code>triggerSomeMessage()</code> that would trigger a message
-for tests, then we would write <code>input { triggeredBy("triggerSomeMessage()") }</code> to make this happen. Example:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">org.springframework.cloud.contract.spec.Contract.make {
-    description("""
-        some interesting description
-    """)
-    label "accepted_verification"
-    input {
-        triggeredBy("triggerSomeMessage()")
-    }
-    outputMessage {
-        sentTo "verifications"
-        body(eligible: true)
-        headers {
-            header("contentType", applicationJsonUtf8())
-        }
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>For this workshop for the <code>shouldSendAcceptedVerification.groovy</code> we want to trigger the <code>clientIsOldEnough()</code>
-    method and for <code>shouldSendRejectedVerification.groovy</code> we want to trigger the <code>clientIsTooYoung()</code> method
-from the base class. (<a href="#_messaging_dsls">Show solution</a>)</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_generating_tests_from_contracts">Generating tests from contracts</h4>
-<div class="ulist">
-<ul>
-<li>
-<p>Let&#8217;s generate the tests! Just call:</p>
-<div class="listingblock primary">
-<div class="title">Maven</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-bash" data-lang="bash">$ ./mvnw clean install</code></pre>
-</div>
-</div>
-<div class="listingblock secondary">
-<div class="title">Gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-bash" data-lang="bash">$ ./gradlew clean build publishToMavenLocal</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Suddenly some tests should start failing. Those tests are the autogenerated tests created
-by Spring Cloud Contract</p>
-</li>
-<li>
-<p>The tests lay under <code>/generated-test-sources/contracts/org/springframework/cloud/contract/verifier/tests/beer</code>
-in <code>target</code> for Maven or <code>build</code> for Gradle</p>
-</li>
-<li>
-<p>There will be a test for each folder in which you store your contracts. The name of the test class
-will be the name of that folder</p>
-</li>
-<li>
-<p>Each of the contracts will be a single test inside that test class</p>
-</li>
-<li>
-<p>If you check out the generated <code>RestTest</code> you&#8217;ll notice that the dynamic parts of the <code>request</code> part
-of the contract got converted to a concrete value. Any dynamic bits on the <code>response</code> side would be
-converted into matchers.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Time to fix the broken tests. We need to do that by providing the missing implementation.</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>Unresolved directive in stubs_per_consumer.adoc - include::generating_tests_from_contract.adoc[]</p>
 </div>
 </div>
 <div class="sect3">
@@ -1715,213 +1596,40 @@ converted into matchers.</p>
 <ul>
 <li>
 <p>First let&#8217;s write the missing implementation in <code>ProducerController</code>. The logic to be written
-is extremely simple - if the <code>personCheckingService.shouldGetBeer(&#8230;&#8203;)</code> returns <code>true</code> then we
-should return <code>new Response(BeerCheckStatus.OK)</code>. Otherwise <code>new Response(BeerCheckStatus.NOT_OK)</code>.
-(<a href="#_producerController_implementation">Show solution</a>)</p>
+    is extremely simple - if the <code>personCheckingService.shouldGetBeer(&#8230;&#8203;)</code> returns <code>true</code> then we
+    should return <code>new Response(BeerCheckStatus.OK, personToCheck.name)</code>.
+    Otherwise <code>new Response(BeerCheckStatus.NOT_OK, personToCheck.name)</code>.
+    (<a href="#_producerController_for_stubs_per_consumer_implementation">Show solution</a>)
+Unresolved directive in stubs_per_consumer.adoc - include::fixing_base_class.adoc[]</p>
 </li>
 </ul>
-</div>
-</li>
-<li>
-<p>Let&#8217;s fix the <code>BeerRestBase</code> class now</p>
-<div class="ulist">
-<ul>
-<li>
-<p>The idea of CDC is <strong>NOT TO TEST</strong> every single feature. Contract tests are there to see if the API
-is matched, <strong>NOT</strong> that the feature is working. That&#8217;s why we shouldn&#8217;t be accessing databases etc.
-That means that we will work with mock of the <code>PersonCheckingService</code>. (<a href="#_beerrestbase">Show solution</a>)</p>
-</li>
-<li>
-<p>Let&#8217;s annotate the test class with <code>@RunWith(MockitoJUnitRunner.class)</code> to enable Mockito runner.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">@RunWith(MockitoJUnitRunner.class)
-public abstract class BeerRestBase {
-...
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>We&#8217;ll want to test the <code>ProducerController</code> so we can create a field <code>@InjectMocks ProducerController
-producerController</code>. Mockito will inject any mocks for us via the constructor.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">    @Mock PersonCheckingService personCheckingService;
-    @InjectMocks ProducerController producerController;
-
-    @Before
-    public void setup() {
-        given(personCheckingService.shouldGetBeer(argThat(oldEnough()))).willReturn(true);
-    }</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>It won&#8217;t compile cause we don&#8217;t have the <code>oldEnough()</code> method but don&#8217;t worry. So this line stubs
-the <code>shouldGetBeer</code> method in such a way that if the user is old enough then the method will return
-true. Let&#8217;s now add the <code>oldEnoughMethod()</code></p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">	private TypeSafeMatcher&lt;PersonToCheck&gt; oldEnough() {
-		return new TypeSafeMatcher&lt;PersonToCheck&gt;() {
-			@Override protected boolean matchesSafely(PersonToCheck personToCheck) {
-				return personToCheck.age &gt;= 20;
-			}
-			@Override public void describeTo(Description description) {
-			}
-		};
-	}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>We&#8217;re using the <code>TypeSafeMatcher</code> from Hamcrest to create a matcher for <code>PersonToCheck</code>. In this case
-if the person to check is older or is 20 then the method <code>shouldGetBeer</code> method will return <code>true</code>.</p>
-</li>
-<li>
-<p>Now we need to configure <a href="http://rest-assured.io/">RestAssured</a> that is used by Spring Cloud Contract
-to send requests. In our case we want to profit from MockMvc. In order to set the <code>ProducerController</code>
-with RestAssured it&#8217;s enough to call <code>RestAssuredMockMvc.standaloneSetup(producerController);</code></p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">@RunWith(MockitoJUnitRunner.class)
-public abstract class BeerRestBase {
-
-    @Mock PersonCheckingService personCheckingService;
-    @InjectMocks ProducerController producerController;
-
-    @Before
-    public void setup() {
-        given(personCheckingService.shouldGetBeer(argThat(oldEnough()))).willReturn(true);
-        RestAssuredMockMvc.standaloneSetup(producerController);
-    }
-
-    private TypeSafeMatcher&lt;PersonToCheck&gt; oldEnough() {
-        return new TypeSafeMatcher&lt;PersonToCheck&gt;() {
-            @Override protected boolean matchesSafely(PersonToCheck personToCheck) {
-                return personToCheck.age &gt;= 20;
-            }
-            @Override public void describeTo(Description description) {
-            }
-        };
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>With mocks and RestAssured setup - we&#8217;re ready to run our HTTP based autogenerated tests</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_fixing_broken_messaging_tests">Fixing broken messaging tests</h4>
-<div class="ulist">
-<ul>
-<li>
-<p>Now let&#8217;s go to the messaging part.</p>
-</li>
-<li>
-<p>Let&#8217;s check out the <code>src/main/resources/application.yml</code> file whether it contains the proper
-destination set for <code>spring.cloud.stream.bindings.output.destination</code>. If not then let&#8217;s set it
-to <code>verifications</code> - this is the queue / topic we&#8217;d like to receive the message from</p>
-</li>
-<li>
-<p>We&#8217;re trying to do TDD so let&#8217;s move to <code>BeerMessagingBase</code> test class. The first thing we need to do is to
-add the <code>@AutoConfigureMessageVerifier</code> annotation on the test class. That will configure
-the setup related to messaging and Spring Cloud Contract.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">@RunWith(SpringRunner.class)
-@SpringBootTest(classes = ProducerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@AutoConfigureMessageVerifier
-public abstract class BeerMessagingBase {
-...
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>We need to prepare some setup for our tests. To do that we&#8217;ll need to clear any remaining
-messages that could break our tests. To do that we&#8217;ll use the Spring Cloud Contract <code>MessageVerifier</code>
-abstraction (it allows to send and receive messages from e.g. Spring Cloud Stream, Sprig Integration, Apache Camel.)</p>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">@RunWith(SpringRunner.class)
-@SpringBootTest(classes = ProducerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@AutoConfigureMessageVerifier
-public abstract class BeerMessagingBase {
-    @Inject MessageVerifier messaging;
-	@Autowired PersonCheckingService personCheckingService;
-
-	@Before
-	public void setup() {
-		// let's clear any remaining messages
-		// output == destination or channel name
-		this.messaging.receive("output", 100, TimeUnit.MILLISECONDS);
-	}
-
-	public void clientIsOldEnough() {
-    }
-
-    public void clientIsTooYoung() {
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>In the <code>clientIsOldEnough()</code> and <code>clientIsTooYoung()</code> we need the logic to trigger a message.
-What triggers a message will be the implementation of the <code>PersonCheckingService#shouldGetBeer</code>.</p>
-</li>
-<li>
-<p>For <code>clientIsOldEnough()</code> we can use a <code>PersonToCheck</code> of age <code>25</code> for example and
-<code>clientIsTooYoung</code> can have age <code>5</code>. (<a href="#_beermessagingbase">Show solution</a>)</p>
-</li>
-<li>
-<p>We can run the test which will obviously fail because we have a missing implementation. Let&#8217;s move
-to <code>AgeCheckingPersonCheckingService</code></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_writing_the_missing_producer_messaging_implementation">Writing the missing producer messaging implementation</h4>
-<div class="ulist">
-<ul>
-<li>
-<p>We need to check if the person&#8217;s age is greater or equal to 20 - if that&#8217;s the case then the
-we need to send the properly generated <code>Verification</code> object. In order to send a message you can use the
-following code <code>source.output().send(MessageBuilder.withPayload(new Verification(true)).build())</code>.
-In this case we&#8217;re sending a message to the <code>output</code> channel (that is bound to <code>verifications</code> destination).
-(<a href="#_messaging_implementation">Show solution</a>)</p>
-</li>
-<li>
-<p>Let&#8217;s run the tests again - they should all pass!</p>
-</li>
-<li>
-<p>Now let&#8217;s ensure that we can successfully publish artifacts to Maven local</p>
-<div class="listingblock primary">
-<div class="title">Maven</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-bash" data-lang="bash">$ ./mvnw clean install</code></pre>
-</div>
-</div>
-<div class="listingblock secondary">
-<div class="title">Gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-bash" data-lang="bash">$ ./gradlew clean build publishToMavenLocal</code></pre>
-</div>
 </div>
 </li>
 <li>
 <p>Now you would merge the PR to master and your CI system would build a fat jar and stubs</p>
 </li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+The stubs per consumer is a very powerful feature. On the producer side, if you want to
+remove a field from the response you can actually very quickly verify if it&#8217;s used. Try removing
+the <code>surname</code> field from the <code>Response</code> class and you&#8217;ll see that the generated <code>RestTest</code> in the
+<code>bar-consumer</code> subfolder is failing. That means that the <code>bar-consumer</code> requires that field and
+you can&#8217;t remove it safely. On the other hand in production both consumers will receive
+more fields than they define in the contract thus if they don&#8217;t configure their serializers
+properly (to ignore unknown fields) then their tests will pass but they&#8217;re integration will fail!
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
 <li>
 <p>Congratulations - you&#8217;ve completed the producer side of this tutorial</p>
 </li>
@@ -2778,6 +2486,17 @@ then:
 		default:
 			return "GET LOST " + message(response.getBody());
 		}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_producercontroller_for_stubs_per_consumer_implementation">ProducerController for stubs per consumer implementation</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">if (personCheckingService.shouldGetBeer(personToCheck)) {
+    return new Response(BeerCheckStatus.OK, personToCheck.name);
+}
+return new Response(BeerCheckStatus.NOT_OK, personToCheck.name);</code></pre>
 </div>
 </div>
 </div>
