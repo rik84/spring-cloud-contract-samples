@@ -21,9 +21,9 @@ public class ProducerController {
 	public Response check(@RequestBody PersonToCheck personToCheck) {
 		//remove::start[]
 		if (personCheckingService.shouldGetBeer(personToCheck)) {
-			return new Response(BeerCheckStatus.OK, "foo", "bar");
+			return new Response(BeerCheckStatus.OK, personToCheck.name, personToCheck.name);
 		}
-		return new Response(BeerCheckStatus.NOT_OK, "foo", "bar");
+		return new Response(BeerCheckStatus.NOT_OK, personToCheck.name, personToCheck.name);
 		//remove::end[return]
 	}
 	
@@ -35,6 +35,7 @@ interface PersonCheckingService {
 
 class PersonToCheck {
 	public int age;
+	public String name;
 
 	public PersonToCheck(int age) {
 		this.age = age;
