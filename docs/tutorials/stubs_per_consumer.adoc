@@ -547,7 +547,7 @@ contracts {
 }
 ----
 
-include::generating_tests_from_contract.adoc[]
+include::snippets/generating_tests_from_contract.adoc[]
 
 ==== Fixing broken HTTP tests
 
@@ -557,7 +557,7 @@ include::generating_tests_from_contract.adoc[]
     should return `new Response(BeerCheckStatus.OK, personToCheck.name)`.
     Otherwise `new Response(BeerCheckStatus.NOT_OK, personToCheck.name)`.
     (<<_producerController_for_stubs_per_consumer_implementation,Show solution>>)
-include::fixing_base_class.adoc[]
+include::snippets/fixing_base_class.adoc[]
 
 - Now you would merge the PR to master and your CI system would build a fat jar and stubs
 
