@@ -18,5 +18,9 @@ public abstract class BeerRestBase {
 	protected void assertStatus(String status) {
 		BDDAssertions.then(status).isEqualToIgnoringCase(Status.NOT_OK.name());
 	}
+
+	protected void assertMessage(String message) {
+		BDDAssertions.then(message).contains("Go home!");
+	}
 	//remove::end[]
 }
