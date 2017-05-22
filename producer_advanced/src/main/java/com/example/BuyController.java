@@ -1,5 +1,7 @@
 package com.example;
 
+import java.util.concurrent.Callable;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,8 +17,11 @@ class BuyController {
 	@PostMapping(value = "/buy",
 			consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	Response buy(@RequestBody Person person) {
-		return new Response(Status.NOT_OK, "You're drunk [" + person.name + "]. Go home!");
+	Callable<Response> buy(@RequestBody Person person) {
+		if ("starbuxman".equalsIgnoreCase(person.name)) {
+			return () -> new Response(Status.OK, "There you go Josh!");
+		}
+		return () ->new Response(Status.NOT_OK, "You're drunk [" + person.name + "]. Go home!");
 	}
 	//remove::end[]
 }

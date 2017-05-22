@@ -20,6 +20,11 @@ We'll try to code the following scenario:
 image::{images_folder}/grumpy_1.png[title="Grumpy bartender that doesn't want to sell any alcohol"]
 
 {nbsp}
+
+
+image::{images_folder}/grumpy_2.png[title="But the beer will always be sold to Josh Long"]
+
+{nbsp}
 {nbsp}
 
 == Flow

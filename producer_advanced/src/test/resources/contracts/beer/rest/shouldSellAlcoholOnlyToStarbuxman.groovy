@@ -4,13 +4,13 @@ import org.springframework.cloud.contract.spec.Contract
 
 Contract.make {
 	description("""
-Represents a grumpy waiter that is too bored to sell any alcohol for anyone.
+Represents a grumpy waiter that will sell alcohol only to Starbuxman.
 """)
 	request {
 		method POST()
 		url '/buy'
 		body(
-				name: $(anyAlphaUnicode()),
+				name: "starbuxman",
 				age: 25
 		)
 		stubMatchers {
@@ -23,16 +23,13 @@ Represents a grumpy waiter that is too bored to sell any alcohol for anyone.
 	response {
 		status 200
 		body(
-				message: "You're drunk [${fromRequest().body('$.name')}]. Go home!",
-				status: $(c("NOT_OK"), p(execute('assertStatus($it)')))
+				message: "There you go Josh!",
+				status: "OK"
 		)
-		testMatchers {
-			jsonPath('$.message', byCommand('assertMessage($it)'))
-		}
 		headers {
 			contentType(applicationJson())
 		}
 		async()
 	}
-	priority 100
+	priority 10
 }

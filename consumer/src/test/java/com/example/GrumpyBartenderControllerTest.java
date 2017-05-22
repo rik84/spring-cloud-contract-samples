@@ -63,5 +63,16 @@ public class GrumpyBartenderControllerTest extends AbstractTest {
 				.andExpect(jsonPath("$.whatDoWeDo").value("Go to another bar"));
 		//remove::end[]
 	}
+
+	@Test public void should_sell_beer_to_Josh() throws Exception {
+		//remove::start[]
+		mockMvc.perform(MockMvcRequestBuilders.post("/grumpy")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(json.write(new Person("starbuxman", 22)).getJson()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.whatTheBartenderSaid").value("There you go Josh!"))
+				.andExpect(jsonPath("$.whatDoWeDo").value("Enjoy!"));
+		//remove::end[]
+	}
 	//end::tests[]
 }
