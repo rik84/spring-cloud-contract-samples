@@ -13,11 +13,11 @@ Represents a grumpy waiter that is too bored to sell any alcohol for anyone.
 				name: $(anyAlphaUnicode()),
 				age: 25
 		)
-		headers {
-			contentType(applicationJson())
-		}
 		stubMatchers {
 			jsonPath('$.age', byRegex('[2-9][0-9]'))
+		}
+		headers {
+			contentType(applicationJson())
 		}
 	}
 	response {

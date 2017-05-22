@@ -35,9 +35,9 @@ public class GrumpyBartenderController {
 				GrumpyBartenderResponse.class);
 		switch (response.getBody().status) {
 		case OK:
-			return new GrumpyResponse(response.getBody().message, "Let's drink!");
+			return new GrumpyResponse(response.getBody().message, "Enjoy!");
 		default:
-			return new GrumpyResponse(response.getBody().message, "Let's go to another bar");
+			return new GrumpyResponse(response.getBody().message, "Go to another bar");
 		}
 		//end::controller[]
 		//remove::end[return]

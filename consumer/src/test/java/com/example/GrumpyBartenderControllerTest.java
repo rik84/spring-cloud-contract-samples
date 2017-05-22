@@ -60,7 +60,7 @@ public class GrumpyBartenderControllerTest extends AbstractTest {
 				.content(json.write(new Person("marcin", 22)).getJson()))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.whatTheBartenderSaid").value("You're drunk [marcin]. Go home!"))
-				.andExpect(jsonPath("$.whatDoWeDo").value("Let's go to another bar"));
+				.andExpect(jsonPath("$.whatDoWeDo").value("Go to another bar"));
 		//remove::end[]
 	}
 	//end::tests[]
