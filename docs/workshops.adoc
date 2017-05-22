@@ -94,11 +94,11 @@ video::iyNzYOcuU4I[youtube,start=538,width=960,height=569]
   (stateful stubs)]
   * link:tutorials/library_with_common_code.html[creating a library with common code
   shareable between teams]
-    ** *requires completion of "Contracts on the producer side"*
+    ** *requires completion of "link:tutorials/contracts_on_the_producer_side.html[Contracts on the producer side]"*
   * link:tutorials/stubbing_out_service_discovery.html[stubbing out service discovery]
   * link:tutorials/junit_rule.html[using JUnit Rule]
-    ** *requires completion of "stubs per consumer"*
+    ** *requires completion of link:tutorials/stubs_per_consumer.html[stubs per consumer]"*
 - link:tutorials/stub_runner_boot.html[Using stubs with Stub Runner Boot]
-    * *requires completion of "Spring Cloud Contract advanced"*
+    * *requires completion of "link:tutorials/stubs_per_consumer.html[Spring Cloud Contract advanced]"*
 
 
